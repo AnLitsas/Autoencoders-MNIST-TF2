@@ -95,3 +95,4 @@ main refers to the "master" branch of the remote repository.
     
     ii) There you can comment, add reviewers to get notified for the changes and get feedback.
 
+### 6) *_Pull_*: With `git pull` you can download the latest version of the project and merge it with your local one.
