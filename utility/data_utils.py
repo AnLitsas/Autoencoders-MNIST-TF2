@@ -1,19 +1,13 @@
 from tensorflow.keras.preprocessing.image import img_to_array, load_img
-import scipy
-import random 
+from tensorflow.keras.datasets import mnist
 import numpy as np
+import random 
+import scipy
+import cv2
 import os
 
 class data_utils():
     def __init__(self):
-        #Define folders containing the datasets
-        self.path_64 = "./data/dataset_64"
-        self.path_128 = "./data/dataset_128"
-        self.path_256 = "./data/dataset_256"
-        self.paths = {
-                        "64": self.path_64,
-                        "128": self.path_128,
-                        "256": self.path_256}
         #Define the folder that stores the results
         self.outpath = "./Results"
         #Paths of folders that need to be created and save the results based on AE architecture
@@ -26,11 +20,6 @@ class data_utils():
                         "batchnorm": self.outpath_batchnorm,
                         "fft": self.outpath_fft,
                         "dropout": self.outpath_dropout}
-        #Paths of folders that need to be created and save the results based on image dimension
-        #self.outpaths_dims = {
-        #                      "ae": [self.outpath_ae+"/Dim_64", self.outpath_ae+"/Dim_128", self.outpath_ae+"/Dim_256" ],
-        #                      "batchnorm": [self.outpath_batchnorm+"/Dim_64", self.outpath_batchnorm+"/Dim_128", self.outpath_batchnorm+"/Dim_256" ],  
-        #                      "fft": [self.outpath_fft+"/Dim_64", self.outpath_fft+"/Dim_128", self.outpath_fft+"/Dim_256" ]}
 
         if not os.path.isdir(self.outpath):
             os.mkdir(self.outpath)
@@ -39,7 +28,6 @@ class data_utils():
     def create_path(self, ae_case, img_dim_case):
         try:
             to_path = self.outpaths[ae_case]
-            #result_folders = self.outpaths_dims[ae_case]
         except KeyError as e:
             print("False AE value is given! \n Check main.py for cases")
             print(e)
@@ -50,59 +38,31 @@ class data_utils():
             os.mkdir(results_folder)
         return(results_folder)
 
+    
     def load_dt(self, img_dim_case):
         """
         Load your data: 
         """
-        try:
-            file_path = self.paths[str(img_dim_case)]
-        except KeyError as e:
-            print("False image dimension is given...")
-            print(e)
-
-        train_dt=os.listdir(file_path+"/train")
-        test_dt=os.listdir(file_path+"/test")
-        val_dt=os.listdir(file_path+"/val")
+        (X_train, _), (X_test, _) = mnist.load_data()
         
-        #Train data set
-        train_file =file_path+"/train/"
-        X_train_tmp=[]
-        print("loading training set... ")
+        # Resize images to img_dim_case x img_dim_case
+        X_train = np.array([cv2.resize(img, (img_dim_case, img_dim_case)) for img in X_train])
+        X_test = np.array([cv2.resize(img, (img_dim_case, img_dim_case)) for img in X_test])
         
-        for i in train_dt:
-            selected_file = train_file+str(i)
-            X_train_tmp.append(img_to_array(load_img(selected_file, color_mode="grayscale"))/255.0)
-        
-        X_train=random.sample(X_train_tmp, 10000)   
-        self.X_train = np.array(X_train)
+        X_train = X_train.astype('float32') / 255.
+        X_test = X_test.astype('float32') / 255.
+        X_train = np.reshape(X_train, (len(X_train), img_dim_case, img_dim_case, 1))
+        X_test = np.reshape(X_test, (len(X_test), img_dim_case, img_dim_case, 1))
 
+        X_val = X_test[:5000]
+        X_test = X_test[5000:]
 
-        #Test Data set
-        test_file =file_path+"/test/"
-        X_test=[]
-        print("loading test set... ")
-        for i in test_dt:
-            selected_file = test_file+str(i)
-            X_test.append(img_to_array(load_img(selected_file, color_mode="grayscale"))/255.0)
-        self.X_test = np.array(X_test)
+        # For visual inspection, you can select a few random samples
+        visuals = np.random.choice(X_test.shape[0], 8)
+        self.Xtest_visual = X_test[visuals]
+        self.Xtrain_visual = X_train[visuals]
 
-        #Validation Data set
-        val_file = file_path+"/val/"
-        X_val=[]
-        print("loading validation set...")
-        for i in val_dt:
-            selected_file = val_file+str(i)
-            X_val.append(img_to_array(load_img(selected_file, color_mode="grayscale"))/255.0)
-        self.X_val = np.array(X_val)
-        
-        
-        #8 pre-selected testing images for showing the results
-        visuals=[932,  1014,  6,  2969,  2032,  3124,  562,  1545]
-        self.Xtest_visual = self.X_test[visuals,:,:,:]
-        self.Xtrain_visual = self.X_train[visuals,:,:,:]
-
-
-        return(self.X_train, self.X_test, self.X_val, self.Xtest_visual, self.Xtrain_visual)
+        return X_train, X_test, X_val, self.Xtest_visual, self.Xtrain_visual
 
     def absolute_spectrum(self):
         self.X_train = abs(scipy.fft.fft2(self.X_train)) #scipy.fft.fftshift(abs(scipy.fft.fft2(train)))

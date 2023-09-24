@@ -1,6 +1,8 @@
+from tensorflow.keras import metrics
+from architecture.layers import *
 from tensorflow import keras
 import tensorflow as tf
-from architecture.layers import *
+
 
 class AE_architectures():
     def __init__(self, shape, latent_size, lr, layers_size, sparsity_str, AE_case, drop_perc, gen_n_nodes):
@@ -17,7 +19,6 @@ class AE_architectures():
         self.AE_case = AE_case
         self.drop_perc = drop_perc
         self.gen_n_nodes = gen_n_nodes
-        #self.select_ae ={"ae": {'encoder': encoder(), 'decoder': decoder(self.encoded) }}
 
     def encoder(self):
         encoder_input = keras.Input(shape=(self.w, self.h, self.c), name='img')
@@ -159,74 +160,13 @@ class AE_architectures():
         reconstruction = last_deconv(unpool_4, 1, self.sparsity_str)
         
         return(reconstruction)
-    '''
-    #for 64x64 images
-    def discriminator(self):
-        discriminator_input = keras.Input(shape=(self.w, self.h, self.c))
-        #64x64x8
-        conv_1  = first_conv(discriminator_input, self.l1, self.w, self.h, self.c, self.sparsity_str)
-        if self.AE_case=="dropout": 
-            drop_1 =dropout(conv_1, self.drop_perc)
-            conv_2 = conv(drop_1, self.l2, self.sparsity_str)
-            drop_2 =dropout(conv_2, self.drop_perc)
-            conv_2 = drop_2 
-        elif self.AE_case == "batchnorm":
-            drop_1 =batchnormalization(conv_1)
-            conv_2 = conv(drop_1, self.l2, self.sparsity_str)
-            drop_2 =batchnormalization(conv_2)
-            conv_2 = drop_2 
-        else:
-            #64x64x16
-            conv_2 = conv(conv_1, 16, self.sparsity_str)
-        #65536
-        unfold = flatten(conv_2)
-        output = dense(unfold, 1, 'sigmoid')
-        model = keras.Model(discriminator_input, output, name="discriminator")
-
-        optim = keras.optimizers.Adam(lr=self.lr, decay=1e-6)
-        model.compile(optim, loss = 'binary_crossentropy', metrics = ['accuracy'])
-        return (model) 
-
-    def generator(self):
-        generator_input = keras.Input(shape = (self.latent_size))
-        dense_1 = dense(generator_input, 8*8*self.gen_n_nodes, 'relu')
-        #8x 8 x gen_n_nodes
-        reshape_1 = reshape(dense_1, 8, 8, self.gen_n_nodes)
-        #upsample to 16 x 16 x gen_n_nodes
-        unpool_1 = unpool(reshape_1)
-        deconv_1 = deconv(unpool_1, self.gen_n_nodes, self.sparsity_str)
-        #upsample to 32 x 32 x gen_n_nodes
-        unpool_2 = unpool(deconv_1)
-        deconv_2 = deconv(unpool_2, self.gen_n_nodes, self.sparsity_str)
-        #upsample to 64 x 64 x gen_n_nodes
-        unpool_3 = unpool(deconv_2)
-        output = last_deconv(unpool_3, 1 , self.sparsity_str)
-
-        model = keras.Model(generator_input, output, name="generator")
-
-        #optim = keras.optimizers.Adam(lr=self.lr, decay = 1e-6)
-        #model.compile(optim, loss = '')
-        return(model)
-
-
-    def gan(self, d_model, g_model):
-        d_model.trainable = False
-       
-        gan_model = keras.models.Sequential()
-        gan_model.add(g_model)
-        
-        gan_model.add(d_model)
-        # compile model
-        opt = keras.optimizers.Adam(lr=self.lr, beta_1=0.5)
-        gan_model.compile(loss='binary_crossentropy', optimizer=opt)
-        return(gan_model)
-    '''
+    
     def model_fit(self, autoencoder, X_train, X_val, batch_sz, epochs):
         print("Fitting..")
     
         callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
         history = autoencoder.fit(X_train, X_train, epochs=epochs,
-                                  batch_size=batch_sz, validation_data = (X_val, X_val), verbose=0,
+                                  batch_size=batch_sz, validation_data = (X_val, X_val), verbose=1,
                                   callbacks=[callback] )
 
         return(autoencoder, history)
@@ -247,6 +187,6 @@ class AE_architectures():
         """
         Compile the Autoencoder
         """
-        autoencoder.compile(optim, loss='mse', metrics=['accuracy'])
+        autoencoder.compile(optim, loss='mse', metrics=[metrics.MeanAbsoluteError()])#metrics=['accuracy'])
         return(autoencoder)
 
