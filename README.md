@@ -1,4 +1,9 @@
-# Autoencoder Hyperparameter Tuning Project in TensorFlow 2
+# Autoencoder Hyperparameter Tuning in TensorFlow 2
+
+<div align="center">
+  <img src="./Results/ae/Dim_64/([8, 16, 32, 64], 100, 100, 1e-05, 64, 0)/training_progress.gif" alt="MNIST Images">
+</div>
+
 
 ## Introduction
 
@@ -41,13 +46,7 @@ To run the code, simply execute the `main.py` file after setting your desired co
 
 ## Results
 
-### AE Model
-
-<div align="center">
-  <img src="./Results/ae/Dim_64/([8, 16, 32, 64], 100, 100, 1e-05, 64, 0)/training_progress.gif" alt="MNIST Images">
-</div>
-
-The AE model was run with the following configurations:
+The GIF above was generated using an AE model configured with the following settings:
 
 - Image size: 64x64
 - Epochs: 100
@@ -57,5 +56,3 @@ The AE model was run with the following configurations:
 - Latent size: 100
 
 
-
-The results can be found in the following path: `./Results/ae/Dim_64/gif`
