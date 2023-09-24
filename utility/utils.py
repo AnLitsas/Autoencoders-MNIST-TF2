@@ -4,6 +4,7 @@ import numpy as np
 import itertools
 import scipy
 import os
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
@@ -24,7 +25,7 @@ def save_results(Xtest_visual, Xtrain_visual, history, new_folder, autoencoder, 
     n=Xtest_visual.shape[0]
     #Set the figure size
     fig = plt.figure(figsize=(8, 2))
-    fig.suptitle("Original and reconstructed images \nMSE Loss: {:.5f}".format(test_loss))
+    fig.suptitle("Original and reconstructed images - MSE Loss: {:.5f}".format(test_loss))
     for i in range(n):
         #Original images
         ax = plt.subplot(2, n, i+1)
@@ -46,7 +47,7 @@ def save_results(Xtest_visual, Xtrain_visual, history, new_folder, autoencoder, 
     n=Xtrain_visual.shape[0]
     
     fig = plt.figure(figsize=(8, 2))
-    fig.suptitle("Original and reconstructed images \nMSE Loss: {:.5f}".format(train_loss))
+    fig.suptitle("Original and reconstructed images - MSE Loss: {:.5f}".format(train_loss))
     for i in range(n):
         #Original images
         ax = plt.subplot(2, n, i+1)
@@ -78,4 +79,5 @@ def set_configurations(dropout):
         config = [layers, latent_sizes, epochs, learning_rates, batch_sizes, sparsity_strengths]
         configuration= [ c for c in itertools.product(*config)]
         return(configuration)
-
+    
+    

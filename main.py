@@ -1,10 +1,13 @@
 from tensorflow.python.keras.utils.vis_utils import plot_model
 from architecture.AE_architectures import *
+from utility.generategif import GenerateGIF
 from utility.data_utils import *
 from utility.utils import *
 import tensorflow as tf
 import numpy as np
+import imageio
 import sys
+
 
 # Initialize data utility and define image sizes and autoencoder types
 dt = data_utils()
@@ -64,14 +67,18 @@ for im_size in image_sizes:
             print(model.summary())
             #plot_model(model, to_file = new_folder+'/ae_plot.png', show_shapes=True, show_layer_names=True)
 
+            # Initialize the custom callback
+            generate_gif_callback = GenerateGIF(vis_test, im_size)
+            
             # Train the model
             print("Training {} model of {}x{} images".format(case, im_size, im_size))
             if case == "dropout":
                 print("Latent code of size {}, learning rate {}, sparcity strength of {} and dropout percentage of {}%".format(latent_space, lr, sparc_strength, dropout_perc*100))
             else:
                 print("Latent code of size {}, learning rate {} and sparcity strength of {}".format(latent_space, lr, sparc_strength))
-            [model, history] = AE.model_fit(model, train, val, batch_sz, epochs)
-            
+            #[model, history] = AE.model_fit(model, train, val, batch_sz, epochs)
+            [model, history] = AE.model_fit(model, train, val, batch_sz, epochs, callbacks=[generate_gif_callback])
+
             
             # Save training history and model
             np.save(new_folder+'/my_history.npy',history.history)
@@ -86,6 +93,8 @@ for im_size in image_sizes:
             train_loss = ((preds_train - train)**2).mean()
             save_results(vis_test, vis_train, history, new_folder, model, im_size, test_loss, train_loss)
 
+        # Create a GIF from frames
+        imageio.mimsave(f'{new_folder}/training_progress.gif', generate_gif_callback.frames, duration=0.08, loop=0)
 
     # Display test loss for each configuration and autoencoder type
     print("Images of size {} x {}".format(im_size, im_size))

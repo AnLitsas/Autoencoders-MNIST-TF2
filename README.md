@@ -37,3 +37,25 @@ In the `main.py` file, you can select the image sizes (only 64, 128, or 256) and
 ## Usage
 
 To run the code, simply execute the `main.py` file after setting your desired configurations in `utils.py`.
+
+
+## Results
+
+### AE Model
+
+<div align="center">
+  <img src="./Results/ae/Dim_64/([8, 16, 32, 64], 100, 100, 1e-05, 64, 0)/training_progress.gif" alt="MNIST Images">
+</div>
+
+The AE model was run with the following configurations:
+
+- Image size: 64x64
+- Epochs: 100
+- Learning rate: 1e-5
+- Batch size: 64
+- Sparsity strength: 0
+- Latent size: 100
+
+
+
+The results can be found in the following path: `./Results/ae/Dim_64/gif`
