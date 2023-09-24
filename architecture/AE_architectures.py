@@ -161,13 +161,17 @@ class AE_architectures():
         
         return(reconstruction)
     
-    def model_fit(self, autoencoder, X_train, X_val, batch_sz, epochs):
+    def model_fit(self, autoencoder, X_train, X_val, batch_sz, epochs, callbacks=None):
         print("Fitting..")
-    
-        callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+        early_stopping_callback  = keras.callbacks.EarlyStopping(monitor='val_loss', patience=10)
+        if callbacks:
+            callbacks.append(early_stopping_callback )
+        else:
+            callbacks = [early_stopping_callback ]
+            
         history = autoencoder.fit(X_train, X_train, epochs=epochs,
                                   batch_size=batch_sz, validation_data = (X_val, X_val), verbose=1,
-                                  callbacks=[callback] )
+                                  callbacks=callbacks )
 
         return(autoencoder, history)
 
@@ -187,6 +191,6 @@ class AE_architectures():
         """
         Compile the Autoencoder
         """
-        autoencoder.compile(optim, loss='mse', metrics=[metrics.MeanAbsoluteError()])#metrics=['accuracy'])
+        autoencoder.compile(optim, loss='mse', metrics=[metrics.MeanAbsoluteError()])
         return(autoencoder)
 
